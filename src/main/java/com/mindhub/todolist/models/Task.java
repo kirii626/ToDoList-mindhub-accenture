@@ -2,6 +2,7 @@ package com.mindhub.todolist.models;
 
 import com.mindhub.todolist.models.enums.TaskStatus;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 
 @Entity
 public class Task {
@@ -10,9 +11,17 @@ public class Task {
     @GeneratedValue
     private Long id;
 
-    private String title, description;
+    @NotBlank(message = "The title can't be null")
+    @Column(nullable = false)
+    private String title;
 
+    @NotBlank(message = "The description can't be null")
+    @Column(nullable = false)
+    private String description;
+
+    @NotBlank(message = "The task status can´t be null, try PENDING, IN_PROGRESS OR COMPLETED ")
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private TaskStatus taskStatus;
 
     @ManyToOne

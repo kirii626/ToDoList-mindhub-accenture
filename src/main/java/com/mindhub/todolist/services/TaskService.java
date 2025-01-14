@@ -2,7 +2,9 @@ package com.mindhub.todolist.services;
 
 import com.mindhub.todolist.dtos.TaskDto;
 import com.mindhub.todolist.dtos.TaskInputDto;
+import com.mindhub.todolist.dtos.TaskInputDtoForUser;
 import com.mindhub.todolist.models.enums.TaskStatus;
+import org.springframework.security.core.Authentication;
 
 import java.util.List;
 
@@ -29,4 +31,14 @@ public interface TaskService {
     void deleteByTaskStatus(TaskStatus status);
 
     boolean getExistsByTaskStatus(TaskStatus taskStatus);
+
+    List<TaskDto> getAllTasksForCurrentUser();
+
+    TaskDto getUserTaskById(Long id);
+
+    TaskDto updateUserTask(Long id, TaskInputDtoForUser taskInputDtoForUser);
+
+    void deleteUserTask(Long id);
+
+    TaskDto createTaskForCurrentUser(TaskInputDtoForUser taskInputDtoForUser, Authentication authentication);
 }

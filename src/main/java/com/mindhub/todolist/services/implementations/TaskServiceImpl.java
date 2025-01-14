@@ -2,6 +2,7 @@ package com.mindhub.todolist.services.implementations;
 
 import com.mindhub.todolist.dtos.TaskDto;
 import com.mindhub.todolist.dtos.TaskInputDto;
+import com.mindhub.todolist.dtos.TaskInputDtoForUser;
 import com.mindhub.todolist.exceptions.TaskNotFoundExc;
 import com.mindhub.todolist.exceptions.UserNotFoundExc;
 import com.mindhub.todolist.models.Task;
@@ -11,23 +12,22 @@ import com.mindhub.todolist.repositories.TaskRepository;
 import com.mindhub.todolist.repositories.UsuarioRepository;
 import com.mindhub.todolist.services.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class TaskServiceImpl implements TaskService {
 
     @Autowired
-    private final TaskRepository taskRepository;
-    @Autowired
-    private final UsuarioRepository usuarioRepository;
+    private TaskRepository taskRepository;
 
-    public TaskServiceImpl(TaskRepository taskRepository, UsuarioRepository usuarioRepository) {
-        this.taskRepository = taskRepository;
-        this.usuarioRepository = usuarioRepository;
-    }
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
     @Override
     public List<TaskDto> getAllTasks() {
@@ -120,11 +120,74 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    public List<TaskDto> getAllTasksForCurrentUser() {
+        Usuario usuario = getAuthenticatedUsuarioEntity();
+        return taskRepository.findByUsuario(usuario)
+                .stream()
+                .map(TaskDto::new)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public TaskDto getUserTaskById(Long id) {
+        Usuario usuario = getAuthenticatedUsuarioEntity();
+        Task task = taskRepository.findByIdAndUsuario(id, usuario)
+                .orElseThrow(() -> new TaskNotFoundExc("Task not found with ID: " + id));
+        return new TaskDto(task);
+    }
+
+    @Override
+    public TaskDto updateUserTask(Long id, TaskInputDtoForUser taskInputDtoForUser) {
+        Usuario usuario = getAuthenticatedUsuarioEntity();
+        Task task = taskRepository.findByIdAndUsuario(id, usuario)
+                .orElseThrow(() -> new TaskNotFoundExc("Task not found with ID: " + id));
+
+        task.setTitle(taskInputDtoForUser.getTitle());
+        task.setDescription(taskInputDtoForUser.getDescription());
+        task.setTaskStatus(taskInputDtoForUser.getTasksStatus());
+
+        Task updatedTask = taskRepository.save(task);
+        return new TaskDto(updatedTask);
+    }
+
+    @Override
+    @Transactional
+    public void deleteUserTask(Long id) {
+        Usuario usuario = getAuthenticatedUsuarioEntity();
+        Task task = taskRepository.findByIdAndUsuario(id, usuario)
+                .orElseThrow(() -> new TaskNotFoundExc("Task not found with ID: " + id));
+
+        taskRepository.delete(task);
+    }
+
+    @Override
+    public TaskDto createTaskForCurrentUser(TaskInputDtoForUser taskInputDtoForUser, Authentication authentication) {
+        Usuario usuario = getAuthenticatedUsuarioEntity();
+
+        Task task = new Task();
+        task.setTitle(taskInputDtoForUser.getTitle());
+        task.setDescription(taskInputDtoForUser.getDescription());
+        task.setTaskStatus(taskInputDtoForUser.getTasksStatus());
+        task.setUsuario(usuario);
+
+        Task savedTask = taskRepository.save(task);
+        return new TaskDto(savedTask);
+    }
+
+    @Override
     @Transactional
     public void deleteByTaskStatus(TaskStatus status) {
         if (!taskRepository.existsByTaskStatus(status)) {
             throw new RuntimeException("No tasks found with status: " + status);
         }
         taskRepository.deleteByTaskStatus(status);
+    }
+
+    private Usuario getAuthenticatedUsuarioEntity() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        return usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundExc("User not found by email: " + email));
     }
 }
