@@ -1,7 +1,10 @@
 package com.mindhub.todolist.dtos;
 
 import com.mindhub.todolist.models.enums.TaskStatus;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public class TaskInputDto {
 
@@ -11,7 +14,7 @@ public class TaskInputDto {
     @NotBlank(message = "The description can´t be null")
     private String description;
 
-    @NotBlank(message = "The status can´t be null")
+    @NotNull(message = "The status can´t be null")
     private TaskStatus tasksStatus;
 
     private Long usuarioId;

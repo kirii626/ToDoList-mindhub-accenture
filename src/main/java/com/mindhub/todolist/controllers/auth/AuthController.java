@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -43,9 +44,10 @@ public class AuthController {
             @ApiResponse(responseCode = "409", description = "User already exists with provided email")
     })
     @PostMapping("/register")
-    public ResponseEntity<UsuarioDto> registerUser(@Valid @RequestBody NewUsuarioDto newUsuarioDto) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody NewUsuarioDto newUsuarioDto) {
         UsuarioDto createdUser = usuarioService.createUsuario(newUsuarioDto);
         return ResponseEntity.ok(createdUser);
+
     }
 
 

@@ -1,7 +1,10 @@
 package com.mindhub.todolist.dtos;
 
 import com.mindhub.todolist.models.enums.TaskStatus;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public class TaskInputDtoForUser {
 
@@ -11,7 +14,7 @@ public class TaskInputDtoForUser {
     @NotBlank(message = "The description can´t be null")
     private String description;
 
-    @NotBlank(message = "The status can´t be null")
+    @NotNull(message = "The status can´t be null")
     private TaskStatus tasksStatus;
 
     public TaskInputDtoForUser() {
@@ -23,15 +26,15 @@ public class TaskInputDtoForUser {
         this.tasksStatus = tasksStatus;
     }
 
-    public @NotBlank(message = "The title can´t be null") String getTitle() {
+    public String getTitle() {
         return title;
     }
 
-    public @NotBlank(message = "The description can´t be null") String getDescription() {
+    public String getDescription() {
         return description;
     }
 
-    public @NotBlank(message = "The status can´t be null") TaskStatus getTasksStatus() {
+    public TaskStatus getTasksStatus() {
         return tasksStatus;
     }
 }

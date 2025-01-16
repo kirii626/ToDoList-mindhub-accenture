@@ -7,6 +7,7 @@ import com.mindhub.todolist.services.TaskService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -49,9 +50,8 @@ public class TaskController {
             @ApiResponse(responseCode = "401", description = "Unauthorized access")
     })
     @PostMapping("/create")
-    public ResponseEntity<TaskDto> createTaskForCurrentUser(@RequestBody TaskInputDtoForUser taskInputDtoForUser,
-                                                            Authentication authentication) {
-        TaskDto createdTask = taskService.createTaskForCurrentUser(taskInputDtoForUser,authentication);
+    public ResponseEntity<TaskDto> createTaskForCurrentUser(@Valid @RequestBody TaskInputDtoForUser taskInputDtoForUser) {
+        TaskDto createdTask = taskService.createTaskForCurrentUser(taskInputDtoForUser);
         return ResponseEntity.ok(createdTask);
 
     }

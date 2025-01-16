@@ -4,7 +4,6 @@ import com.mindhub.todolist.dtos.TaskDto;
 import com.mindhub.todolist.dtos.TaskInputDto;
 import com.mindhub.todolist.dtos.TaskInputDtoForUser;
 import com.mindhub.todolist.models.enums.TaskStatus;
-import org.springframework.security.core.Authentication;
 
 import java.util.List;
 
@@ -40,5 +39,5 @@ public interface TaskService {
 
     void deleteUserTask(Long id);
 
-    TaskDto createTaskForCurrentUser(TaskInputDtoForUser taskInputDtoForUser, Authentication authentication);
+    TaskDto createTaskForCurrentUser(TaskInputDtoForUser taskInputDtoForUser);
 }

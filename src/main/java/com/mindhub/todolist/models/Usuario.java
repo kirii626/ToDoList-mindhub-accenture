@@ -14,15 +14,12 @@ public class Usuario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "The username can´t be null")
     @Column(nullable = false)
     private String username;
 
-    @NotBlank(message = "The password can´t be null")
     @Column(nullable = false)
     private String password;
 
-    @NotBlank(message = "The email can´t be null")
     @Column(nullable = false, unique = true)
     private String email;
 

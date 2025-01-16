@@ -161,7 +161,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public TaskDto createTaskForCurrentUser(TaskInputDtoForUser taskInputDtoForUser, Authentication authentication) {
+    public TaskDto createTaskForCurrentUser(TaskInputDtoForUser taskInputDtoForUser) {
         Usuario usuario = getAuthenticatedUsuarioEntity();
 
         Task task = new Task();

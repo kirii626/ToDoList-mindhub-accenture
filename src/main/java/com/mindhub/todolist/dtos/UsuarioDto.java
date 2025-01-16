@@ -4,7 +4,6 @@ import com.mindhub.todolist.models.Usuario;
 
 public class UsuarioDto {
 
-
     private String username, email;
 
     public UsuarioDto() {
