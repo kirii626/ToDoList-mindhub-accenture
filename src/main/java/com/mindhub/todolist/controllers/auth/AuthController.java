@@ -2,9 +2,9 @@ package com.mindhub.todolist.controllers.auth;
 
 import com.mindhub.todolist.config.JwtUtils;
 import com.mindhub.todolist.dtos.LoginUser;
-import com.mindhub.todolist.dtos.NewUsuarioDto;
-import com.mindhub.todolist.dtos.UsuarioDto;
-import com.mindhub.todolist.services.UsuarioService;
+import com.mindhub.todolist.dtos.NewUserDto;
+import com.mindhub.todolist.dtos.UserDto;
+import com.mindhub.todolist.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -12,7 +12,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -31,7 +30,7 @@ public class AuthController {
     private AuthenticationManager authenticationManager;
 
     @Autowired
-    private UsuarioService usuarioService;
+    private UserService userService;
 
     @Autowired
     private JwtUtils jwtUtil;
@@ -40,12 +39,12 @@ public class AuthController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User registered successfully",
                     content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = UsuarioDto.class))),
+                            schema = @Schema(implementation = UserDto.class))),
             @ApiResponse(responseCode = "409", description = "User already exists with provided email")
     })
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody NewUsuarioDto newUsuarioDto) {
-        UsuarioDto createdUser = usuarioService.createUsuario(newUsuarioDto);
+    public ResponseEntity<?> registerUser(@Valid @RequestBody NewUserDto newUserDto) {
+        UserDto createdUser = userService.createUserEntity(newUserDto);
         return ResponseEntity.ok(createdUser);
 
     }

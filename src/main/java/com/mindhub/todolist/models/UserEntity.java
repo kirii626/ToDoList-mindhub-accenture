@@ -2,13 +2,12 @@ package com.mindhub.todolist.models;
 
 import com.mindhub.todolist.models.enums.RoleName;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-public class Usuario {
+public class UserEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,13 +26,13 @@ public class Usuario {
     @Column(nullable = false)
     private RoleName roleName = RoleName.USER;
 
-    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Task> tasks = new HashSet<>();
+    @OneToMany(mappedBy = "userEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<TaskEntity> tasks = new HashSet<>();
 
-    public Usuario() {
+    public UserEntity() {
     }
 
-    public Usuario(String username, String email, RoleName roleName, String password) {
+    public UserEntity(String username, String email, RoleName roleName, String password) {
         this.username = username;
         this.email = email;
         this.roleName = roleName;
@@ -76,17 +75,16 @@ public class Usuario {
         this.roleName = roleName;
     }
 
-    public void addTask(Task task) {
-        task.setUsuario(this);
-        tasks.add(task);
+    public void addTask(TaskEntity taskEntity) {
+        taskEntity.setUserEntity(this);
+        tasks.add(taskEntity);
     }
 
     @Override
     public String toString() {
-        return "Usuario{" +
+        return "UserEntity{" +
                 "id=" + id +
                 ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
                 ", email='" + email + '\'' +
                 ", roleName=" + roleName +
                 '}';

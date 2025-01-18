@@ -1,32 +1,30 @@
 package com.mindhub.todolist.dtos;
 
 import com.mindhub.todolist.models.enums.TaskStatus;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public class TaskInputDto {
 
-    @NotBlank(message = "The title can´t be null")
+    @NotBlank(message = "titulo")
     private String title;
 
     @NotBlank(message = "The description can´t be null")
     private String description;
 
-    @NotNull(message = "The status can´t be null")
+    @NotNull(message = "The task status can't be blank. Allowed values: PENDING, IN_PROGRESS, COMPLETED")
     private TaskStatus tasksStatus;
 
-    private Long usuarioId;
+    private Long userId;
 
     public TaskInputDto() {
     }
 
-    public TaskInputDto(String title, String description, TaskStatus tasksStatus, Long usuarioId) {
+    public TaskInputDto(String title, String description, TaskStatus tasksStatus, Long userId) {
         this.title = title;
         this.description = description;
         this.tasksStatus = tasksStatus;
-        this.usuarioId = usuarioId;
+        this.userId = userId;
     }
 
     public String getTitle() {
@@ -41,7 +39,7 @@ public class TaskInputDto {
         return tasksStatus;
     }
 
-    public Long getUsuarioId() {
-        return usuarioId;
+    public Long getUserId() {
+        return userId;
     }
 }

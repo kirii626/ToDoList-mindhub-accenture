@@ -23,7 +23,7 @@ public interface TaskService {
 
     boolean getExistsByTitle(String title);
 
-    Long getCountByUsuarioId(Long usuarioId);
+    Long getCountByUserEntityId(Long userId);
 
     List<TaskDto> getfindByTitleOrderByIdAsc(String title);
 
@@ -33,11 +33,11 @@ public interface TaskService {
 
     List<TaskDto> getAllTasksForCurrentUser();
 
-    TaskDto getUserTaskById(Long id);
+    TaskDto getUserEntityTaskById(Long id);
 
-    TaskDto updateUserTask(Long id, TaskInputDtoForUser taskInputDtoForUser);
+    TaskDto updateUserEntityTask(Long id, TaskInputDtoForUser taskInputDtoForUser);
 
-    void deleteUserTask(Long id);
+    void deleteUserEntityTask(Long id);
 
-    TaskDto createTaskForCurrentUser(TaskInputDtoForUser taskInputDtoForUser);
+    TaskDto createTaskForCurrentUserEntity(TaskInputDtoForUser taskInputDtoForUser);
 }

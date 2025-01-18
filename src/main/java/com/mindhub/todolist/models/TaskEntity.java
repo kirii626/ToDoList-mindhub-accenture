@@ -4,7 +4,7 @@ import com.mindhub.todolist.models.enums.TaskStatus;
 import jakarta.persistence.*;
 
 @Entity
-public class Task {
+public class TaskEntity {
 
     @Id
     @GeneratedValue
@@ -21,12 +21,12 @@ public class Task {
     private TaskStatus taskStatus;
 
     @ManyToOne
-    private Usuario usuario;
+    private UserEntity userEntity;
 
-    public Task() {
+    public TaskEntity() {
     }
 
-    public Task(String title, String description, TaskStatus taskStatus) {
+    public TaskEntity(String title, String description, TaskStatus taskStatus) {
         this.title = title;
         this.description = description;
         this.taskStatus = taskStatus;
@@ -60,12 +60,12 @@ public class Task {
         this.taskStatus = taskStatus;
     }
 
-    public Usuario getUsuario() {
-        return usuario;
+    public UserEntity getUserEntity() {
+        return userEntity;
     }
 
-    public void setUsuario(Usuario usuario) {
-        this.usuario = usuario;
+    public void setUserEntity(UserEntity userEntity) {
+        this.userEntity = userEntity;
     }
 
     @Override

@@ -1,7 +1,6 @@
 package com.mindhub.todolist.controllers.user;
 
 import com.mindhub.todolist.dtos.TaskDto;
-import com.mindhub.todolist.dtos.TaskInputDto;
 import com.mindhub.todolist.dtos.TaskInputDtoForUser;
 import com.mindhub.todolist.services.TaskService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -10,7 +9,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -40,7 +38,7 @@ public class TaskController {
     })
     @GetMapping("/{id}")
     public ResponseEntity<TaskDto> getTaskById(@PathVariable Long id) {
-        return ResponseEntity.ok(taskService.getUserTaskById(id));
+        return ResponseEntity.ok(taskService.getUserEntityTaskById(id));
     }
 
     @Operation(summary = "Create a task", description = "Creates a new task for the authenticated user.")
@@ -51,7 +49,7 @@ public class TaskController {
     })
     @PostMapping("/create")
     public ResponseEntity<TaskDto> createTaskForCurrentUser(@Valid @RequestBody TaskInputDtoForUser taskInputDtoForUser) {
-        TaskDto createdTask = taskService.createTaskForCurrentUser(taskInputDtoForUser);
+        TaskDto createdTask = taskService.createTaskForCurrentUserEntity(taskInputDtoForUser);
         return ResponseEntity.ok(createdTask);
 
     }
@@ -64,8 +62,8 @@ public class TaskController {
             @ApiResponse(responseCode = "401", description = "Unauthorized access")
     })
     @PutMapping("/{id}")
-    public ResponseEntity<TaskDto> updateTask(@PathVariable Long id, @RequestBody TaskInputDtoForUser taskInputDtoForUser) {
-        return ResponseEntity.ok(taskService.updateUserTask(id, taskInputDtoForUser));
+    public ResponseEntity<TaskDto> updateTask(@Valid @PathVariable Long id, @RequestBody TaskInputDtoForUser taskInputDtoForUser) {
+        return ResponseEntity.ok(taskService.updateUserEntityTask(id, taskInputDtoForUser));
     }
 
     @Operation(summary = "Delete a task", description = "Deletes a task by its ID, ensuring it belongs to the authenticated user.")
@@ -76,7 +74,7 @@ public class TaskController {
     })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
-        taskService.deleteUserTask(id);
+        taskService.deleteUserEntityTask(id);
         return ResponseEntity.noContent().build();
     }
 }

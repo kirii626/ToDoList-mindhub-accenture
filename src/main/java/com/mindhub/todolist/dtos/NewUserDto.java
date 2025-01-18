@@ -4,7 +4,7 @@ package com.mindhub.todolist.dtos;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public class NewUsuarioDto {
+public class NewUserDto {
 
     @NotBlank(message = "Username is required")
     @Size(min = 3, max = 20, message = "Username must be between 3 and 20 characters")
@@ -16,10 +16,10 @@ public class NewUsuarioDto {
     @NotBlank(message = "Password is required")
     private String password;
 
-    public NewUsuarioDto() {
+    public NewUserDto() {
     }
 
-    public NewUsuarioDto(String username, String email, String password) {
+    public NewUserDto(String username, String email, String password) {
         this.username = username;
         this.email = email;
         this.password = password;

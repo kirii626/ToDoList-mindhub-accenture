@@ -95,9 +95,9 @@ public class AdminTaskController {
             @ApiResponse(responseCode = "200", description = "Count retrieved successfully"),
             @ApiResponse(responseCode = "404", description = "User not found")
     })
-    @GetMapping("/count/{usuarioId}")
-    public Long getCountByUsuarioId(@PathVariable Long usuarioId) {
-        return taskService.getCountByUsuarioId(usuarioId);
+    @GetMapping("/count/{userId}")
+    public Long getCountByUserId(@PathVariable Long userId) {
+        return taskService.getCountByUserEntityId(userId);
     }
 
     @Operation(summary = "Filter tasks by title", description = "Retrieves tasks that match a specific title, ordered by ID.")

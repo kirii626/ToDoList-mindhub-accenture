@@ -1,7 +1,7 @@
 package com.mindhub.todolist.repositories;
 
-import com.mindhub.todolist.models.Task;
-import com.mindhub.todolist.models.Usuario;
+import com.mindhub.todolist.models.TaskEntity;
+import com.mindhub.todolist.models.UserEntity;
 import com.mindhub.todolist.models.enums.TaskStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -10,21 +10,21 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface TaskRepository extends JpaRepository<Task, Long> {
+public interface TaskRepository extends JpaRepository<TaskEntity, Long> {
 
-    List<Task> findByTaskStatus(TaskStatus status);
+    List<TaskEntity> findByTaskStatus(TaskStatus status);
 
     boolean existsByTitle(String title);
 
-    Long countByUsuarioId(Long usuarioId);
+    Long countByUserEntityId(Long userId);
 
-    List<Task> findByTitleOrderByIdAsc(String title);
+    List<TaskEntity> findByTitleOrderByIdAsc(String title);
 
     void deleteByTaskStatus(TaskStatus status);
 
     boolean existsByTaskStatus(TaskStatus taskStatus);
 
-    List<Task> findByUsuario(Usuario usuario);
+    List<TaskEntity> findByUserEntity(UserEntity userEntity);
 
-    Optional<Task> findByIdAndUsuario(Long id, Usuario usuario);
+    Optional<TaskEntity> findByIdAndUserEntity(Long id, UserEntity userEntity);
 }

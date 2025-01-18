@@ -1,17 +1,14 @@
 package com.mindhub.todolist.controllers.admin;
 
-import com.mindhub.todolist.dtos.NewUsuarioDto;
-import com.mindhub.todolist.dtos.TaskDto;
-import com.mindhub.todolist.dtos.UsuarioDto;
+import com.mindhub.todolist.dtos.NewUserDto;
+import com.mindhub.todolist.dtos.UserDto;
 import com.mindhub.todolist.models.enums.RoleName;
-import com.mindhub.todolist.services.TaskService;
-import com.mindhub.todolist.services.UsuarioService;
+import com.mindhub.todolist.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,7 +18,7 @@ import java.util.List;
 public class AdminUserController {
 
     @Autowired
-    private UsuarioService usuarioService;
+    private UserService userService;
 
 
     @Operation(summary = "Assign role to a user", description = "Assigns a specific role to a user by user ID.")
@@ -31,10 +28,10 @@ public class AdminUserController {
             @ApiResponse(responseCode = "400", description = "Invalid role provided")
     })
     @PutMapping("/{userId}/assign-role")
-    public ResponseEntity<UsuarioDto> assignRoleToUser(@PathVariable Long userId,
-                                                       @RequestParam RoleName roleName) {
-        UsuarioDto updatedUsuario = usuarioService.assignRoleToUsuario(userId, roleName);
-        return ResponseEntity.ok(updatedUsuario);
+    public ResponseEntity<UserDto> assignRoleToUser(@PathVariable Long userId,
+                                                    @RequestParam RoleName roleName) {
+        UserDto updatedUser = userService.assignRoleToUser(userId, roleName);
+        return ResponseEntity.ok(updatedUser);
     }
 
     @Operation(summary = "Retrieve all users", description = "Fetches a list of all users in the system.")
@@ -43,8 +40,8 @@ public class AdminUserController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @GetMapping("/all-users")
-    public List<UsuarioDto> getAllUsuarios() {
-        return usuarioService.getAllUsuarios();
+    public List<UserDto> getAllUsers() {
+        return userService.getAllUsers();
     }
 
     @Operation(summary = "Delete user by ID", description = "Deletes a user by their unique ID.")
@@ -53,8 +50,8 @@ public class AdminUserController {
             @ApiResponse(responseCode = "404", description = "User not found")
     })
     @DeleteMapping("/delete-user/{id}")
-    public ResponseEntity<Void> deleteUsuario(@PathVariable Long id) {
-        usuarioService.deleteUsuario(id);
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        userService.deleteUserEntity(id);
         return ResponseEntity.noContent().build();
     }
 
@@ -64,8 +61,8 @@ public class AdminUserController {
             @ApiResponse(responseCode = "404", description = "User not found")
     })
     @GetMapping("/user-by-email/{email}")
-    public UsuarioDto getUsuarioByEmail(@PathVariable String email) {
-        return usuarioService.getUsuarioByEmail(email);
+    public UserDto getUserByEmail(@PathVariable String email) {
+        return userService.getUserByEmail(email);
     }
 
     @Operation(summary = "Check if user exists by username", description = "Checks if a user exists with a given username.")
@@ -75,7 +72,7 @@ public class AdminUserController {
     })
     @GetMapping("/exists-user/{username}")
     public Boolean getExistsByUsername(@PathVariable String username) {
-        return usuarioService.getExistByUsername(username);
+        return userService.getExistByUsername(username);
     }
 
     @Operation(summary = "Count users by email", description = "Counts the number of users registered with a specific email.")
@@ -85,7 +82,7 @@ public class AdminUserController {
     })
     @GetMapping("/count-users/{email}")
     public Long getCountByEmail(@PathVariable String email) {
-        return usuarioService.getCountByEmail(email);
+        return userService.getCountByEmail(email);
     }
 
     @Operation(summary = "Delete user by email", description = "Deletes a user using their email address.")
@@ -95,7 +92,7 @@ public class AdminUserController {
     })
     @DeleteMapping("/delete-by-email/{email}")
     public void deleteByEmail(@PathVariable String email) {
-        usuarioService.deleteByEmail(email);
+        userService.deleteByEmail(email);
     }
 
     @Operation(summary = "Create a new user", description = "Registers a new user with the provided data.")
@@ -105,11 +102,11 @@ public class AdminUserController {
             @ApiResponse(responseCode = "409", description = "User already exists with the given email")
     })
     @PostMapping("/create-user")
-    public ResponseEntity<UsuarioDto> createUsuario(@RequestBody NewUsuarioDto newUsuarioDto) {
-        UsuarioDto newUsuario =  usuarioService.createUsuario(newUsuarioDto);
+    public ResponseEntity<UserDto> createUser(@RequestBody NewUserDto newUserDto) {
+        UserDto newUser =  userService.createUserEntity(newUserDto);
         return ResponseEntity
                 .status(201)
-                .body(newUsuario);
+                .body(newUser);
     }
 
 }

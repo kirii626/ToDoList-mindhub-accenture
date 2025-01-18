@@ -1,11 +1,11 @@
 package com.mindhub.todolist;
 
-import com.mindhub.todolist.models.Task;
-import com.mindhub.todolist.models.Usuario;
+import com.mindhub.todolist.models.TaskEntity;
+import com.mindhub.todolist.models.UserEntity;
 import com.mindhub.todolist.models.enums.RoleName;
 import com.mindhub.todolist.models.enums.TaskStatus;
 import com.mindhub.todolist.repositories.TaskRepository;
-import com.mindhub.todolist.repositories.UsuarioRepository;
+import com.mindhub.todolist.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -16,7 +16,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @SpringBootApplication
 public class TodolistApplication {
 
-	@Autowired
+	/*
+	* @Autowired
 	private PasswordEncoder passwordEncoder;
 
 	public static void main(String[] args) {
@@ -25,15 +26,19 @@ public class TodolistApplication {
 
 
 	@Bean
-	public CommandLineRunner initData(UsuarioRepository usuarioRepository,
+	public CommandLineRunner initData(UserRepository userRepository,
 									  TaskRepository taskRepository) {
 
 		return args -> {
-			Usuario usuario = new Usuario("kiara", "aaa@gmail.com", RoleName.ADMIN,passwordEncoder.encode("12345"));
-			usuarioRepository.save(usuario);
-			Task task = new Task("ir al gym","hacer la rutina",TaskStatus.COMPLETED);
-			usuario.addTask(task);
-			taskRepository.save(task);
+			UserEntity userEntity = new UserEntity("kiara", "aaa@gmail.com", RoleName.ADMIN,passwordEncoder.encode("12345"));
+			userRepository.save(userEntity);
+			TaskEntity taskEntity = new TaskEntity("ir al gym","hacer la rutina",TaskStatus.COMPLETED);
+			userEntity.addTask(taskEntity);
+			taskRepository.save(taskEntity);
 		};
 	}
+
+	* */
+
+
 }

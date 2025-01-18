@@ -1,52 +1,27 @@
 package com.mindhub.todolist.exceptions;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import com.mindhub.todolist.models.enums.TaskStatus;
 import io.swagger.v3.oas.annotations.Hidden;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class ExceptionHandlers {
-    @ExceptionHandler(UserNotFoundExc.class)
-    public ResponseEntity<Map<String, Object>> handleUserNotFoundException(UserNotFoundExc ex) {
-        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
-    }
-
-    @ExceptionHandler(UserAlreadyExistsExc.class)
-    public ResponseEntity<Map<String, Object>> handleUserAlreadyExistsException(UserAlreadyExistsExc ex) {
-        return buildErrorResponse(HttpStatus.CONFLICT, ex.getMessage());
-    }
-
-    @ExceptionHandler(TaskNotFoundExc.class)
-    public ResponseEntity<Map<String, Object>> handleTaskNotFoundException(TaskNotFoundExc ex) {
-        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
-    }
-
-    @ExceptionHandler(IllegalArgumentExc.class)
-    public ResponseEntity<Map<String, Object>> handleIllegalArgumentException(IllegalArgumentException ex) {
-        return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleGeneralException(Exception ex) {
-        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error: " + ex.getMessage());
-    }
-
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getFieldErrors().forEach(error ->
-                errors.put(error.getField(), error.getDefaultMessage()));
-        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
-    }
-
     private ResponseEntity<Map<String, Object>> buildErrorResponse(HttpStatus status, String message) {
         Map<String, Object> errorBody = new HashMap<>();
         errorBody.put("timestamp", LocalDateTime.now());
@@ -56,5 +31,38 @@ public class ExceptionHandlers {
         return new ResponseEntity<>(errorBody, status);
     }
 
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, Object>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        String errors = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .collect(Collectors.joining(", "));
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Validation error(s): " + errors);
+    }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalArgumentException(IllegalArgumentException ex) {
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidFormatException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidFormatException(InvalidFormatException ex) {
+        String fieldName = ex.getPath().get(0).getFieldName();
+        String invalidValue = ex.getValue().toString();
+        String allowedValues = "Allowed values: PENDING, IN_PROGRESS, COMPLETED";
+
+        String message = String.format("Invalid value '%s' for field '%s'. %s", invalidValue, fieldName, allowedValues);
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, message);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, Object>> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Invalid request format. Please check the data you're sending.");
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, Object>> handleGeneralException(Exception ex) {
+        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred: " + ex.getMessage());
+    }
 }

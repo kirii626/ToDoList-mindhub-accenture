@@ -5,11 +5,11 @@ import com.mindhub.todolist.dtos.TaskInputDto;
 import com.mindhub.todolist.dtos.TaskInputDtoForUser;
 import com.mindhub.todolist.exceptions.TaskNotFoundExc;
 import com.mindhub.todolist.exceptions.UserNotFoundExc;
-import com.mindhub.todolist.models.Task;
-import com.mindhub.todolist.models.Usuario;
+import com.mindhub.todolist.models.TaskEntity;
+import com.mindhub.todolist.models.UserEntity;
 import com.mindhub.todolist.models.enums.TaskStatus;
 import com.mindhub.todolist.repositories.TaskRepository;
-import com.mindhub.todolist.repositories.UsuarioRepository;
+import com.mindhub.todolist.repositories.UserRepository;
 import com.mindhub.todolist.services.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -27,7 +27,7 @@ public class TaskServiceImpl implements TaskService {
     private TaskRepository taskRepository;
 
     @Autowired
-    private UsuarioRepository usuarioRepository;
+    private UserRepository userRepository;
 
     @Override
     public List<TaskDto> getAllTasks() {
@@ -39,25 +39,25 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public TaskDto getTaskById(Long id) {
-        Task task =  taskRepository.findById(id)
+        TaskEntity taskEntity =  taskRepository.findById(id)
                 .orElseThrow(() -> new TaskNotFoundExc("Task not found with ID: " + id));
-        return new TaskDto(task);
+        return new TaskDto(taskEntity);
     }
 
     @Override
     public TaskDto createTask(TaskInputDto taskInputDto) {
-        Task task = new Task();
-        task.setTitle(taskInputDto.getTitle());
-        task.setDescription(taskInputDto.getDescription());
-        task.setTaskStatus(taskInputDto.getTasksStatus());
+        TaskEntity taskEntity = new TaskEntity();
+        taskEntity.setTitle(taskInputDto.getTitle());
+        taskEntity.setDescription(taskInputDto.getDescription());
+        taskEntity.setTaskStatus(taskInputDto.getTasksStatus());
 
-        if (taskInputDto.getUsuarioId() != null) {
-            Usuario usuario = usuarioRepository.findById(taskInputDto.getUsuarioId())
+        if (taskInputDto.getUserId() != null) {
+            UserEntity userEntity = userRepository.findById(taskInputDto.getUserId())
                     .orElseThrow(() -> new UserNotFoundExc("User not found by ID: "));
-            task.setUsuario(usuario);
+            taskEntity.setUserEntity(userEntity);
         }
 
-        Task savedTask = taskRepository.save(task);
+        TaskEntity savedTask = taskRepository.save(taskEntity);
         return new TaskDto(savedTask);
     }
 
@@ -71,20 +71,20 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public TaskDto updateTask(Long id, TaskInputDto taskInputDto) {
-        Task existingTask = taskRepository.findById(id)
+        TaskEntity existingTask = taskRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Task not found"));
 
         existingTask.setTitle(taskInputDto.getTitle());
         existingTask.setDescription(taskInputDto.getDescription());
         existingTask.setTaskStatus(taskInputDto.getTasksStatus());
 
-        if (taskInputDto.getUsuarioId() != null) {
-            Usuario usuario = usuarioRepository.findById(taskInputDto.getUsuarioId())
+        if (taskInputDto.getUserId() != null) {
+            UserEntity userEntity = userRepository.findById(taskInputDto.getUserId())
                     .orElseThrow(() -> new UserNotFoundExc("User not found by ID: "));
-            existingTask.setUsuario(usuario);
+            existingTask.setUserEntity(userEntity);
         }
 
-        Task updatedTask = taskRepository.save(existingTask);
+        TaskEntity updatedTask = taskRepository.save(existingTask);
         return new TaskDto(updatedTask);
     }
 
@@ -102,8 +102,8 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
-    public Long getCountByUsuarioId(Long usuarioId) {
-        return taskRepository.countByUsuarioId(usuarioId);
+    public Long getCountByUserEntityId(Long userId) {
+        return taskRepository.countByUserEntityId(userId);
     }
 
     @Override
@@ -121,56 +121,56 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public List<TaskDto> getAllTasksForCurrentUser() {
-        Usuario usuario = getAuthenticatedUsuarioEntity();
-        return taskRepository.findByUsuario(usuario)
+        UserEntity userEntity = getAuthenticatedUserEntity();
+        return taskRepository.findByUserEntity(userEntity)
                 .stream()
                 .map(TaskDto::new)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public TaskDto getUserTaskById(Long id) {
-        Usuario usuario = getAuthenticatedUsuarioEntity();
-        Task task = taskRepository.findByIdAndUsuario(id, usuario)
+    public TaskDto getUserEntityTaskById(Long id) {
+        UserEntity userEntity = getAuthenticatedUserEntity();
+        TaskEntity taskEntity = taskRepository.findByIdAndUserEntity(id, userEntity)
                 .orElseThrow(() -> new TaskNotFoundExc("Task not found with ID: " + id));
-        return new TaskDto(task);
+        return new TaskDto(taskEntity);
     }
 
     @Override
-    public TaskDto updateUserTask(Long id, TaskInputDtoForUser taskInputDtoForUser) {
-        Usuario usuario = getAuthenticatedUsuarioEntity();
-        Task task = taskRepository.findByIdAndUsuario(id, usuario)
+    public TaskDto updateUserEntityTask(Long id, TaskInputDtoForUser taskInputDtoForUser) {
+        UserEntity userEntity = getAuthenticatedUserEntity();
+        TaskEntity taskEntity = taskRepository.findByIdAndUserEntity(id, userEntity)
                 .orElseThrow(() -> new TaskNotFoundExc("Task not found with ID: " + id));
 
-        task.setTitle(taskInputDtoForUser.getTitle());
-        task.setDescription(taskInputDtoForUser.getDescription());
-        task.setTaskStatus(taskInputDtoForUser.getTasksStatus());
+        taskEntity.setTitle(taskInputDtoForUser.getTitle());
+        taskEntity.setDescription(taskInputDtoForUser.getDescription());
+        taskEntity.setTaskStatus(taskInputDtoForUser.getTasksStatus());
 
-        Task updatedTask = taskRepository.save(task);
+        TaskEntity updatedTask = taskRepository.save(taskEntity);
         return new TaskDto(updatedTask);
     }
 
     @Override
     @Transactional
-    public void deleteUserTask(Long id) {
-        Usuario usuario = getAuthenticatedUsuarioEntity();
-        Task task = taskRepository.findByIdAndUsuario(id, usuario)
+    public void deleteUserEntityTask(Long id) {
+        UserEntity userEntity = getAuthenticatedUserEntity();
+        TaskEntity taskEntity = taskRepository.findByIdAndUserEntity(id, userEntity)
                 .orElseThrow(() -> new TaskNotFoundExc("Task not found with ID: " + id));
 
-        taskRepository.delete(task);
+        taskRepository.delete(taskEntity);
     }
 
     @Override
-    public TaskDto createTaskForCurrentUser(TaskInputDtoForUser taskInputDtoForUser) {
-        Usuario usuario = getAuthenticatedUsuarioEntity();
+    public TaskDto createTaskForCurrentUserEntity(TaskInputDtoForUser taskInputDtoForUser) {
+        UserEntity userEntity = getAuthenticatedUserEntity();
 
-        Task task = new Task();
-        task.setTitle(taskInputDtoForUser.getTitle());
-        task.setDescription(taskInputDtoForUser.getDescription());
-        task.setTaskStatus(taskInputDtoForUser.getTasksStatus());
-        task.setUsuario(usuario);
+        TaskEntity taskEntity = new TaskEntity();
+        taskEntity.setTitle(taskInputDtoForUser.getTitle());
+        taskEntity.setDescription(taskInputDtoForUser.getDescription());
+        taskEntity.setTaskStatus(taskInputDtoForUser.getTasksStatus());
+        taskEntity.setUserEntity(userEntity);
 
-        Task savedTask = taskRepository.save(task);
+        TaskEntity savedTask = taskRepository.save(taskEntity);
         return new TaskDto(savedTask);
     }
 
@@ -183,11 +183,11 @@ public class TaskServiceImpl implements TaskService {
         taskRepository.deleteByTaskStatus(status);
     }
 
-    private Usuario getAuthenticatedUsuarioEntity() {
+    private UserEntity getAuthenticatedUserEntity() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String email = authentication.getName();
 
-        return usuarioRepository.findByEmail(email)
+        return userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundExc("User not found by email: " + email));
     }
 }
