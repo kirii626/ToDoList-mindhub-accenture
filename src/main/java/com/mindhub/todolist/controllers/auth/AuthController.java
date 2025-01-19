@@ -60,7 +60,7 @@ public class AuthController {
             @ApiResponse(responseCode = "400", description = "Invalid request format")
     })
     @PostMapping("/login")
-    public ResponseEntity<String> authenticateUser(@RequestBody LoginUser loginRequest) {
+    public ResponseEntity<String> authenticateUser(@Valid @RequestBody LoginUser loginRequest) {
         // Delegar la autenticación al servicio
         String jwt = authService.authenticateAndGenerateToken(
                 loginRequest.email(),
