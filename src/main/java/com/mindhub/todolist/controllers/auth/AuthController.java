@@ -4,6 +4,7 @@ import com.mindhub.todolist.config.JwtUtils;
 import com.mindhub.todolist.dtos.LoginUser;
 import com.mindhub.todolist.dtos.NewUserDto;
 import com.mindhub.todolist.dtos.UserDto;
+import com.mindhub.todolist.services.AuthService;
 import com.mindhub.todolist.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -14,9 +15,6 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,6 +23,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+
+    @Autowired
+    private AuthService authService;
 
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -44,7 +45,7 @@ public class AuthController {
     })
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@Valid @RequestBody NewUserDto newUserDto) {
-        UserDto createdUser = userService.createUserEntity(newUserDto);
+        UserDto createdUser = authService.registerNewUser(newUserDto);
         return ResponseEntity.ok(createdUser);
 
     }
@@ -60,15 +61,13 @@ public class AuthController {
     })
     @PostMapping("/login")
     public ResponseEntity<String> authenticateUser(@RequestBody LoginUser loginRequest) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginRequest.email(),
-                        loginRequest.password()
-                )
+        // Delegar la autenticación al servicio
+        String jwt = authService.authenticateAndGenerateToken(
+                loginRequest.email(),
+                loginRequest.password()
         );
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = jwtUtil.generateToken(authentication.getName());
+        // Retornar el token como respuesta
         return ResponseEntity.ok(jwt);
     }
 
