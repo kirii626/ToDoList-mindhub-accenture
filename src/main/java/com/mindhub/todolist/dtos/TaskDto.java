@@ -11,13 +11,13 @@ public class TaskDto {
 
     private String title, description;
 
-    private TaskStatus tasksStatus;
+    private TaskStatus taskStatus;
 
     public TaskDto(TaskEntity taskEntity) {
         id = taskEntity.getId();
         title = taskEntity.getTitle();
         description = taskEntity.getDescription();
-        tasksStatus = taskEntity.getTaskStatus();
+        taskStatus = taskEntity.getTaskStatus();
     }
 
     public Long getId() {
@@ -32,8 +32,8 @@ public class TaskDto {
         return description;
     }
 
-    public TaskStatus getTasksStatus() {
-        return tasksStatus;
+    public TaskStatus getTaskStatus() {
+        return taskStatus;
     }
 
 }
