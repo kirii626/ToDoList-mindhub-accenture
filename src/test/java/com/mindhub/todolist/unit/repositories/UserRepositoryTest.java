@@ -64,19 +64,19 @@ public class UserRepositoryTest {
     }
 
     @Test
-    void testExistsByUsername_UserDoesNotExist() {
+    void testExistsByUsernameUserDoesNotExist() {
         boolean exists = userRepository.existsByUsername("unknownuser");
         assertThat(exists).isFalse();
     }
 
     @Test
-    void testCountByEmail_UserExists() {
+    void testCountByEmailUserExists() {
         long count = userRepository.countByEmail("test@example.com");
         assertThat(count).isEqualTo(1);
     }
 
     @Test
-    void testCountByEmail_UserDoesNotExist() {
+    void testCountByEmailUserDoesNotExist() {
         long count = userRepository.countByEmail("nonexistent@example.com");
         assertThat(count).isZero();
     }

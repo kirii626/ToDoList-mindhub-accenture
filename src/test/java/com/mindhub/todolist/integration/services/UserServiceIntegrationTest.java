@@ -1,4 +1,4 @@
-package com.mindhub.todolist.services;
+package com.mindhub.todolist.integration.services;
 
 import com.mindhub.todolist.config.JwtAuthenticationFilter;
 import com.mindhub.todolist.config.JwtUtils;
@@ -9,6 +9,7 @@ import com.mindhub.todolist.exceptions.UserNotFoundExc;
 import com.mindhub.todolist.models.UserEntity;
 import com.mindhub.todolist.models.enums.RoleName;
 import com.mindhub.todolist.repositories.UserRepository;
+import com.mindhub.todolist.services.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -45,7 +46,6 @@ public class UserServiceIntegrationTest {
         userRepository.save(testUser);
     }
 
-    // ✅ Test de integración: Obtener usuario por ID
     @Test
     void testGetUserEntityByIdSuccess() {
         UserDto result = userService.getUserEntityById(testUser.getId());
@@ -54,7 +54,6 @@ public class UserServiceIntegrationTest {
         assertThat(result.getUsername()).isEqualTo("testuser");
     }
 
-    // ❌ Test de integración: Obtener usuario inexistente por ID
     @Test
     void testGetUserEntityByIdNotFound() {
         assertThatThrownBy(() -> userService.getUserEntityById(999L))
@@ -62,7 +61,6 @@ public class UserServiceIntegrationTest {
                 .hasMessageContaining("User not found by ID: 999");
     }
 
-    // ✅ Test de integración: Crear usuario
     @Test
     void testCreateUserEntitySuccess() {
         NewUserDto newUserDto = new NewUserDto("newuser", "new@example.com", "password123");
@@ -74,7 +72,6 @@ public class UserServiceIntegrationTest {
         assertThat(userRepository.findByEmail("new@example.com")).isPresent();
     }
 
-    // ❌ Test de integración: Intentar crear usuario con email existente
     @Test
     void testCreateUserEntityEmailAlreadyExists() {
         NewUserDto duplicateUser = new NewUserDto("testuser", "test@example.com", "password123");
@@ -84,7 +81,6 @@ public class UserServiceIntegrationTest {
                 .hasMessageContaining("The email already exists: test@example.com");
     }
 
-    // ✅ Test de integración: Eliminar usuario por ID
     @Test
     void testDeleteUserEntitySuccess() {
         userService.deleteUserEntity(testUser.getId());
@@ -92,7 +88,6 @@ public class UserServiceIntegrationTest {
         assertThat(userRepository.findById(testUser.getId())).isNotPresent();
     }
 
-    // ❌ Test de integración: Eliminar usuario inexistente
     @Test
     void testDeleteUserEntityNotFound() {
         assertThatThrownBy(() -> userService.deleteUserEntity(999L))
@@ -100,7 +95,6 @@ public class UserServiceIntegrationTest {
                 .hasMessageContaining("User not found by ID: 999");
     }
 
-    // ✅ Test de integración: Asignar rol a usuario
     @Test
     void testAssignRoleToUserSuccess() {
         UserDto updatedUser = userService.assignRoleToUser(testUser.getId(), RoleName.ADMIN);
@@ -108,7 +102,6 @@ public class UserServiceIntegrationTest {
         assertThat(updatedUser.getRoleName()).isEqualTo(RoleName.ADMIN);
     }
 
-    // ❌ Test de integración: Asignar rol a usuario inexistente
     @Test
     void testAssignRoleToUserNotFound() {
         assertThatThrownBy(() -> userService.assignRoleToUser(999L, RoleName.ADMIN))

@@ -38,11 +38,11 @@ public class TaskRepositoryTest {
         when(passwordEncoder.encode(org.mockito.ArgumentMatchers.anyString()))
                 .thenReturn("mockedPassword");
 
-        // Crear usuario de prueba
+        // Create user for tests
         testUser = new UserEntity("testuser", "test@example.com", RoleName.USER, passwordEncoder.encode("12345"));
         userRepository.save(testUser);
 
-        // Crear tareas de prueba
+        // Create tasks for tests
         TaskEntity task1 = new TaskEntity("Tarea 1", "Descripción 1", TaskStatus.PENDING);
         TaskEntity task2 = new TaskEntity("Tarea 2", "Descripción 2", TaskStatus.COMPLETED);
         TaskEntity task3 = new TaskEntity("Tarea 1", "Otra descripción", TaskStatus.PENDING);
@@ -85,13 +85,13 @@ public class TaskRepositoryTest {
 
     // Test for existsByTaskStatus
     @Test
-    void testExistsByTaskStatus_Exists() {
+    void testExistsByTaskStatusExists() {
         boolean exists = taskRepository.existsByTaskStatus(TaskStatus.COMPLETED);
         assertThat(exists).isTrue();
     }
 
     @Test
-    void testExistsByTaskStatus_NotExists() {
+    void testExistsByTaskStatusNotExists() {
         boolean exists = taskRepository.existsByTaskStatus(TaskStatus.IN_PROGRESS);
         assertThat(exists).isFalse();
     }
@@ -105,7 +105,7 @@ public class TaskRepositoryTest {
 
     // Test for findByIdAndUserEntity - Task Found
     @Test
-    void testFindByIdAndUserEntity_Exists() {
+    void testFindByIdAndUserEntityExists() {
         TaskEntity task = taskRepository.findByTitleOrderByIdAsc("Tarea 1").get(0);
         Optional<TaskEntity> result = taskRepository.findByIdAndUserEntity(task.getId(), testUser);
 
@@ -115,7 +115,7 @@ public class TaskRepositoryTest {
 
     // Test for findByIdAndUserEntity - Task not found
     @Test
-    void testFindByIdAndUserEntity_NotExists() {
+    void testFindByIdAndUserEntityNotExists() {
         Optional<TaskEntity> result = taskRepository.findByIdAndUserEntity(999L, testUser);
         assertThat(result).isNotPresent();
     }
