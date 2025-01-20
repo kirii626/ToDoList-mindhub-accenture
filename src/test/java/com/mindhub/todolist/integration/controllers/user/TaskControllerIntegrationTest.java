@@ -66,6 +66,7 @@ public class TaskControllerIntegrationTest {
         userEntity.setPassword("encoded-password");
         userEntity = userRepository.save(userEntity);
 
+        // Generate a valid token
         validToken = "Bearer " + jwtUtils.generateToken(userEntity.getEmail());
 
         User userDetails = new User(
