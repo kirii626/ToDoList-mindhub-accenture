@@ -69,4 +69,23 @@ public class ExceptionHandlers {
         return buildErrorResponse(HttpStatus.UNAUTHORIZED, ex.getMessage());
     }
 
+    @ExceptionHandler(TaskNotFoundExc.class)
+    public ResponseEntity<Map<String, Object>> handleTaskNotFound(TaskNotFoundExc ex) {
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(UserNotFoundExc.class)
+    public ResponseEntity<Map<String, Object>> handleUserNotFoundException(UserNotFoundExc ex) {
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Map<String, Object>> handleRuntimeException(RuntimeException ex) {
+        if ("Invalid email or password".equals(ex.getMessage())) {
+            return buildErrorResponse(HttpStatus.UNAUTHORIZED, ex.getMessage());
+        }
+        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred: " + ex.getMessage());
+    }
+
+
 }
