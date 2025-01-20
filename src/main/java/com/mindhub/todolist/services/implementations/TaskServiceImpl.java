@@ -64,7 +64,7 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public void deleteTask(Long id) {
         if (!taskRepository.existsById(id)) {
-            throw new RuntimeException("Task not found by ID: ");
+            throw new TaskNotFoundExc("Task not found by ID: ");
         }
         taskRepository.deleteById(id);
     }
@@ -178,7 +178,7 @@ public class TaskServiceImpl implements TaskService {
     @Transactional
     public void deleteByTaskStatus(TaskStatus status) {
         if (!taskRepository.existsByTaskStatus(status)) {
-            throw new RuntimeException("No tasks found with status: " + status);
+            throw new TaskNotFoundExc("No tasks found with status: " + status);
         }
         taskRepository.deleteByTaskStatus(status);
     }
