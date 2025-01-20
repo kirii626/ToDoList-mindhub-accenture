@@ -7,6 +7,7 @@ import com.mindhub.todolist.dtos.TaskInputDtoForUser;
 import com.mindhub.todolist.models.TaskEntity;
 import com.mindhub.todolist.models.UserEntity;
 import com.mindhub.todolist.models.enums.TaskStatus;
+import com.mindhub.todolist.repositories.TaskRepository;
 import com.mindhub.todolist.repositories.UserRepository;
 import com.mindhub.todolist.services.TaskService;
 import org.junit.jupiter.api.AfterEach;
@@ -17,9 +18,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -42,67 +46,52 @@ public class TaskControllerIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockitoBean
-    private TaskService taskService;
+    @Autowired
+    private TaskRepository taskRepository;
 
-    @MockitoBean
-    private JwtUtils jwtUtils;
-
-    @MockitoBean
+    @Autowired
     private UserRepository userRepository;
 
-    private TaskDto taskDto;
-    private TaskInputDtoForUser taskInputDto;
+    @Autowired
+    private JwtUtils jwtUtils;
 
-    private final String validToken = "Bearer mocked-valid-jwt-token";
+    private UserEntity userEntity;
+    private String validToken;
 
     @BeforeEach
     void setup() {
-        Mockito.when(jwtUtils.validateToken(Mockito.anyString(), Mockito.anyString()))
-                .thenReturn(true);
-        Mockito.when(jwtUtils.extractUsername(Mockito.anyString())).thenReturn("testuser@email.com");
-
-        // Authenticated user mock
-        UserEntity userEntity = new UserEntity();
+        userEntity = new UserEntity();
+        userEntity.setUsername("testuser");
         userEntity.setEmail("testuser@email.com");
         userEntity.setPassword("encoded-password");
+        userEntity = userRepository.save(userEntity);
 
-        Mockito.when(userRepository.findByEmail("testuser@email.com"))
-                .thenReturn(java.util.Optional.of(userEntity));
+        validToken = "Bearer " + jwtUtils.generateToken(userEntity.getEmail());
 
-        // UserDetails mock with "USER" rol
-        org.springframework.security.core.userdetails.User userDetails =
-                new org.springframework.security.core.userdetails.User(
-                        "testuser@email.com",
-                        "encoded-password",
-                        List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("USER"))
-                );
-
-        // Entablish the security context with the authenticated user
-        Authentication authentication = new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
-                userDetails, null, userDetails.getAuthorities()
+        User userDetails = new User(
+                userEntity.getEmail(),
+                userEntity.getPassword(),
+                List.of(new SimpleGrantedAuthority("USER"))
         );
-        SecurityContextHolder.setContext(new SecurityContextImpl(authentication));
+        SecurityContextHolder.setContext(new SecurityContextImpl(
+                new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.getAuthorities()
+                )
+        ));
 
-        // User's task mock
-        TaskEntity taskEntity = Mockito.mock(TaskEntity.class);
-        Mockito.when(taskEntity.getId()).thenReturn(1L); // Simulates a generated ID
-        Mockito.when(taskEntity.getTitle()).thenReturn("Test Task");
-        Mockito.when(taskEntity.getDescription()).thenReturn("Description of test task");
-        Mockito.when(taskEntity.getTaskStatus()).thenReturn(TaskStatus.PENDING);
-
-        taskDto = new TaskDto(taskEntity);
-        taskInputDto = new TaskInputDtoForUser("New Task", "New task description", TaskStatus.IN_PROGRESS);
-
-        Mockito.when(taskService.getAllTasksForCurrentUser()).thenReturn(List.of(taskDto));
-        Mockito.when(taskService.getUserEntityTaskById(1L)).thenReturn(taskDto);
-        Mockito.when(taskService.createTaskForCurrentUserEntity(Mockito.any(TaskInputDtoForUser.class)))
-                .thenReturn(taskDto);
+        TaskEntity taskEntity = new TaskEntity();
+        taskEntity.setTitle("Initial Task");
+        taskEntity.setDescription("Initial task description");
+        taskEntity.setTaskStatus(TaskStatus.PENDING);
+        taskEntity.setUserEntity(userEntity);
+        taskRepository.save(taskEntity);
     }
 
     @AfterEach
-    void clearSecurityContext() {
+    void teardown() {
         SecurityContextHolder.clearContext();
+        taskRepository.deleteAll();
+        userRepository.deleteAll();
     }
 
     @Test
@@ -111,9 +100,8 @@ public class TaskControllerIntegrationTest {
                         .header("Authorization", validToken)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1))
-                .andExpect(jsonPath("$[0].title").value("Test Task"))
-                .andExpect(jsonPath("$[0].description").value("Description of test task"))
+                .andExpect(jsonPath("$[0].title").value("Initial Task"))
+                .andExpect(jsonPath("$[0].description").value("Initial task description"))
                 .andExpect(jsonPath("$[0].taskStatus").value("PENDING"));
     }
 
@@ -127,26 +115,24 @@ public class TaskControllerIntegrationTest {
 
     @Test
     void shouldCreateTaskForCurrentUser() throws Exception {
+        TaskInputDtoForUser taskInputDto = new TaskInputDtoForUser("New Task", "Description of new task", TaskStatus.IN_PROGRESS);
+
         mockMvc.perform(post("/api/user/tasks/create")
                         .header("Authorization", validToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(taskInputDto)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.title").value("Test Task"))
-                .andExpect(jsonPath("$.description").value("Description of test task"))
-                .andExpect(jsonPath("$.taskStatus").value("PENDING"));
+                .andExpect(jsonPath("$.title").value("New Task"))
+                .andExpect(jsonPath("$.description").value("Description of new task"))
+                .andExpect(jsonPath("$.taskStatus").value("IN_PROGRESS"));
     }
 
     @Test
     void shouldFailToCreateTaskWithInvalidToken() throws Exception {
-        String invalidToken = "Bearer invalid-token";
-
-        Mockito.when(jwtUtils.validateToken(Mockito.eq("invalid-token"), Mockito.anyString()))
-                .thenReturn(false);
+        TaskInputDtoForUser taskInputDto = new TaskInputDtoForUser("New Task", "Description of new task", TaskStatus.IN_PROGRESS);
 
         mockMvc.perform(post("/api/user/tasks/create")
-                        .header("Authorization", invalidToken)
+                        .header("Authorization", "Bearer invalid-token")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(taskInputDto)))
                 .andExpect(status().isUnauthorized())
@@ -155,7 +141,9 @@ public class TaskControllerIntegrationTest {
 
     @Test
     void shouldDeleteTaskForCurrentUser() throws Exception {
-        mockMvc.perform(delete("/api/user/tasks/1")
+        TaskEntity taskEntity = taskRepository.findAll().get(0);
+
+        mockMvc.perform(delete("/api/user/tasks/" + taskEntity.getId())
                         .header("Authorization", validToken)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
@@ -163,7 +151,9 @@ public class TaskControllerIntegrationTest {
 
     @Test
     void shouldFailToDeleteTaskWithoutToken() throws Exception {
-        mockMvc.perform(delete("/api/user/tasks/1")
+        TaskEntity taskEntity = taskRepository.findAll().get(0);
+
+        mockMvc.perform(delete("/api/user/tasks/" + taskEntity.getId())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.message").value("Authorization header is missing"));
