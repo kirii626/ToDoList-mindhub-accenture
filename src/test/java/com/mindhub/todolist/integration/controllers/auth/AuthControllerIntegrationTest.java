@@ -3,12 +3,12 @@ package com.mindhub.todolist.integration.controllers.auth;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mindhub.todolist.dtos.LoginUser;
 import com.mindhub.todolist.dtos.NewUserDto;
-import com.mindhub.todolist.dtos.UserDto;
 import com.mindhub.todolist.exceptions.UserAlreadyExistsExc;
 import com.mindhub.todolist.models.UserEntity;
 import com.mindhub.todolist.models.enums.RoleName;
-import com.mindhub.todolist.services.AuthService;
-import com.mindhub.todolist.services.UserService;
+import com.mindhub.todolist.repositories.UserRepository;
+import org.hamcrest.Matchers;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -16,8 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-public class AuthController {
+public class AuthControllerIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -34,77 +34,71 @@ public class AuthController {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @MockitoBean
-    private AuthService authService;
+    @Autowired
+    private UserRepository userRepository;
 
-    @MockitoBean
-    private UserService userService;
-
-    private NewUserDto newUserDto;
-    private LoginUser loginUser;
-    private UserEntity userEntity;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @BeforeEach
     void setup() {
         // Register DTO
-        newUserDto = new NewUserDto("testuser", "testuser@email.com", "password123");
+        userRepository.deleteAll();
 
-        // Login DTO
-        loginUser = new LoginUser("testuser@email.com", "password123");
+        UserEntity existingUser = new UserEntity();
+        existingUser.setUsername("testuser");
+        existingUser.setEmail("testuser@email.com");
+        existingUser.setPassword(passwordEncoder.encode("password123")); // Usa la codificación real
+        existingUser.setRoleName(RoleName.USER);
+        userRepository.save(existingUser);
+    }
 
-        // Simulated user
-        userEntity = new UserEntity();
-        userEntity.setUsername("testuser");
-        userEntity.setEmail("testuser@email.com");
-        userEntity.setRoleName(RoleName.USER);
-
-        // Service authentication mock
-        Mockito.when(authService.registerNewUser(Mockito.any(NewUserDto.class)))
-                .thenReturn(new UserDto(userEntity));
-
-        Mockito.when(authService.authenticateAndGenerateToken(Mockito.anyString(), Mockito.anyString()))
-                .thenReturn("mocked-jwt-token");
+    @AfterEach
+    void teardown() {
+        userRepository.deleteAll();
     }
 
     @Test
     void shouldRegisterUserSuccessfully() throws Exception {
+        NewUserDto newUserDto = new NewUserDto("newuser", "newuser@email.com", "password123");
+
         mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(newUserDto)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.username").value("testuser"))
-                .andExpect(jsonPath("$.email").value("testuser@email.com"));
+                .andExpect(jsonPath("$.username").value("newuser"))
+                .andExpect(jsonPath("$.email").value("newuser@email.com"));
     }
 
     @Test
     void shouldFailToRegisterWhenUserAlreadyExists() throws Exception {
-        Mockito.when(authService.registerNewUser(Mockito.any(NewUserDto.class)))
-                .thenThrow(new UserAlreadyExistsExc("User already exists"));
+        NewUserDto duplicateUserDto = new NewUserDto("testuser", "testuser@email.com", "password123");
 
         mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(newUserDto)))
+                        .content(objectMapper.writeValueAsString(duplicateUserDto)))
                 .andExpect(status().isConflict()) // 409 Conflict
-                .andExpect(jsonPath("$.message").value("User already exists"));
+                .andExpect(jsonPath("$.message").value("The email already exists: testuser@email.com"));
     }
 
     @Test
     void shouldAuthenticateUserSuccessfully() throws Exception {
+        LoginUser loginUser = new LoginUser("testuser@email.com", "password123");
+
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginUser)))
                 .andExpect(status().isOk())
-                .andExpect(content().string("mocked-jwt-token"));
+                .andExpect(content().string(Matchers.notNullValue()));
     }
 
     @Test
     void shouldFailToAuthenticateWithInvalidCredentials() throws Exception {
-        Mockito.when(authService.authenticateAndGenerateToken(Mockito.anyString(), Mockito.anyString()))
-                .thenThrow(new RuntimeException("Invalid email or password"));
+        LoginUser invalidLogin = new LoginUser("testuser@email.com", "wrongpassword");
 
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginUser)))
+                        .content(objectMapper.writeValueAsString(invalidLogin)))
                 .andExpect(status().isUnauthorized()) // 401 Unauthorized
                 .andExpect(jsonPath("$.message").value("Invalid email or password"));
     }
@@ -116,7 +110,8 @@ public class AuthController {
         mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidUserDto)))
-                .andExpect(status().isBadRequest()); // 400 Bad Request
+                .andExpect(status().isBadRequest()) // 400 Bad Request
+                .andExpect(jsonPath("$.message").exists());
     }
 
     @Test
@@ -126,6 +121,8 @@ public class AuthController {
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(incompleteLogin)))
-                .andExpect(status().isBadRequest()); // 400 Bad Request
+                .andExpect(status().isBadRequest()) // 400 Bad Request
+                .andExpect(jsonPath("$.message").exists());
+
     }
 }
